@@ -17,7 +17,7 @@ const validate = (schema: AnyZodObject) => {
           path: err.path.join('.'),
           message: err.message,
         }));
-        next(new ApiError(400, 'Validation Error', false, errors));
+        next(new ApiError(400, 'Validation error', false, errors));
       } else {
         next(error);
       }
