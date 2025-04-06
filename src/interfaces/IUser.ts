@@ -9,3 +9,5 @@ export interface IUser extends Document {
     updatedAt: Date;
     comparePassword: (password: string) => Promise<boolean>;
 }
+
+export type UserDocument = IUser & Document;
