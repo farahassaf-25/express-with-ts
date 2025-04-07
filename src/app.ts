@@ -3,6 +3,9 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan';
 import { config } from 'dotenv'
+import httpStatus from 'http-status';
+import userRoutes from './routes/userRoutes';
+import ApiError from './utils/ApiError';
 
 config();
 
@@ -39,27 +42,45 @@ class App {
                 timeStamp: new Date().toISOString(),
             })
         });
+
+        this.app.get('/api/v1/users', userRoutes);
     }
 
-    private initializeErrorHandling() : void {
-        //404 handler 
-        this.app.use((req: Request, res: Response, next: NextFunction) => {
-            res.status(404).json({
-                message: 'Not Found',
-                status: false,
-            });
-        });
-
-
-        //error handler
-        this.app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-            console.error(err.stack);
-            res.status(500).json({
-                message: 'Internal Server Error',
-                status: false,
-                error: process.env.NODE_ENV === 'development' ? err.message : undefined,
-            });
-        });
+    private initializeErrorHandling(): void {
+      // Handle 404
+      this.app.use((req: Request, res: Response, next: NextFunction) => {
+        next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
+      });
+    
+      // Convert error to ApiError if needed
+      this.app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+        if (!(err instanceof ApiError)) {
+          const statusCode = err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
+          const message = err.message || httpStatus[statusCode as keyof typeof httpStatus] || 'Internal Server Error';
+          if(!(err instanceof ApiError)) {
+            err = new ApiError(statusCode, message, false, err);
+          }
+        }
+        next(err);
+      });
+    
+      // Handle errors
+      this.app.use((err: ApiError, req: Request, res: Response, next: NextFunction) => {
+        const { statusCode, message, isOperational, details } = err;
+    
+        const response = {
+          code: statusCode,
+          message,
+          ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+          ...(isOperational && { details }),
+        };
+    
+        if (process.env.NODE_ENV === 'development') {
+          console.error(err);
+        }
+    
+        res.status(statusCode).json(response);
+      });
     }
 }
 
