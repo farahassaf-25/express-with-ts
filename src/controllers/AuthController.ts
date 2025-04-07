@@ -12,6 +12,24 @@ export interface AuthenticatedRequest extends Request {
 
 class AuthController {
   /**
+   * register user
+   */
+  public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { username, email, password } = req.body;
+      const { user, token } = await AuthService.register(username, email, password);
+
+      res.status(httpStatus.CREATED).json({
+        success: true,
+        token,
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Login user
    */
   public async login(req: Request, res: Response, next: NextFunction): Promise<void> {

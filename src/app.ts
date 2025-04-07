@@ -44,8 +44,8 @@ class App {
             })
         });
 
-        this.app.get('/api/v1/users', userRoutes);
-        this.app.get('/api/v1/auth', authRoutes);
+        this.app.use('/api/v1/users', userRoutes);
+        this.app.use('/api/v1/auth', authRoutes);
     }
 
     private initializeErrorHandling(): void {

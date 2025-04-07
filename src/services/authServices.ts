@@ -10,6 +10,29 @@ class AuthService {
     private static readonly JWT_SECRET = process.env.JWT_SECRET as string;
 
     /**
+     * register user
+     */
+    public static async register(username: string, email: string, password: string): Promise<{ user: any; token: string }> {
+        // 1. Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            throw new ApiError(httpStatus.CONFLICT, 'Email already in use');
+        }
+    
+        // 2. Create new user
+        const newUser = await User.create({ username, email, password });
+    
+        // 3. Remove password from returned object
+        const userWithoutPassword = newUser.toObject() as { [key: string]: any };
+        delete userWithoutPassword.password;
+    
+        // 4. Generate JWT token
+        const token = this.generateToken(newUser.id);
+    
+        return { user: userWithoutPassword, token };
+    }    
+
+    /**
      * login with username and password
      */
     public static async login(email: string, password: string): Promise<{ user: any; token: string }> {
