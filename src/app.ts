@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { config } from 'dotenv'
 import httpStatus from 'http-status';
 import userRoutes from './routes/userRoutes';
+import authRoutes from './routes/authRoutes';
 import ApiError from './utils/ApiError';
 
 config();
@@ -44,6 +45,7 @@ class App {
         });
 
         this.app.get('/api/v1/users', userRoutes);
+        this.app.get('/api/v1/auth', authRoutes);
     }
 
     private initializeErrorHandling(): void {
